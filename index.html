@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignació de Diputats – Província de València (D'Hondt)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface-2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --text-muted: #8b9bb4;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --radius: 10px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 2rem; }
+
+    header h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 0.35rem;
+    }
+
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .config {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      align-items: flex-end;
+    }
+
+    .config-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .config-row label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    input[type="number"],
+    input[type="text"] {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.95rem;
+      width: 120px;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"] { width: 180px; }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .parties-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .parties-header h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .parties-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .party-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      background: var(--surface-2);
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .party-row:hover { border-color: var(--border); }
+
+    .party-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .party-name { flex: 1; min-width: 140px; }
+    .party-votes { width: 130px; }
+
+    .btn-remove {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.25rem 0.4rem;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .btn-remove:hover {
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--border); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    .results h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .summary {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      background: var(--surface-2);
+      padding: 0.75rem 1.1rem;
+      border-radius: 8px;
+      min-width: 140px;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .results-table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    td.seats {
+      font-weight: 700;
+      color: var(--success);
+      font-size: 1.05rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-pass {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--success);
+    }
+
+    .badge-fail {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .quotients h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+    }
+
+    .table-scroll { overflow-x: auto; }
+
+    #quotientsTable th,
+    #quotientsTable td {
+      text-align: center;
+      min-width: 70px;
+    }
+
+    #quotientsTable th:first-child,
+    #quotientsTable td:first-child {
+      text-align: left;
+      min-width: 110px;
+    }
+
+    .quotient-selected {
+      background: rgba(59, 130, 246, 0.25) !important;
+      font-weight: 700;
+      color: #93c5fd;
+    }
+
+    .hidden { display: none !important; }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 2rem;
+      padding-bottom: 1rem;
+    }
+
+    footer p + p { margin-top: 0.25rem; }
+
+    .info-box {
+      background: var(--surface-2);
+      border-left: 4px solid var(--primary);
+      padding: 1rem 1.2rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1.25rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .info-box strong { color: var(--text); }
+
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      header h1 { font-size: 1.5rem; }
+      .party-name, .party-votes { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Assignació de Diputats</h1>
+      <p class="subtitle">Província de València · Mètode D'Hondt · 16 escaons</p>
+    </header>
+
+    <div class="info-box">
+      <strong>Com funciona:</strong> Edita els noms dels partits i el nombre de vots.
+      Pots afegir o eliminar partits. Prem «Calcular assignació» per veure el repartiment
+      amb el mètode D'Hondt (llindar del 3 % dels vots vàlids, configurable).
+    </div>
+
+    <section class="config">
+      <div class="config-row">
+        <label for="seats">Nombre d'escaons:</label>
+        <input type="number" id="seats" value="16" min="1" max="50">
+      </div>
+      <div class="config-row">
+        <label for="threshold">Llindar electoral (%):</label>
+        <input type="number" id="threshold" value="3" min="0" max="20" step="0.1">
+      </div>
+      <div class="config-row">
+        <label for="blankVotes">Vots en blanc:</label>
+        <input type="number" id="blankVotes" value="0" min="0">
+      </div>
+    </section>
+
+    <section class="parties">
+      <div class="parties-header">
+        <h2>Partits i vots</h2>
+        <button id="addParty" class="btn btn-secondary">+ Afegir partit</button>
+      </div>
+      <div id="partiesList" class="parties-list"></div>
+    </section>
+
+    <section class="actions">
+      <button id="calculate" class="btn btn-primary">Calcular assignació</button>
+      <button id="reset" class="btn btn-outline">Reiniciar amb dades d'exemple</button>
+    </section>
+
+    <section id="results" class="results hidden">
+      <h2>Resultats</h2>
+      <div class="summary">
+        <div class="stat">
+          <span class="stat-label">Vots vàlids totals</span>
+          <span id="totalValid" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Escaons assignats</span>
+          <span id="totalSeats" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <div class="results-table-wrapper">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>Partit</th>
+              <th>Vots</th>
+              <th>%</th>
+              <th>Escaons</th>
+              <th>Barrera 3%</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="quotients">
+        <h3>Taula de quocients D'Hondt</h3>
+        <p class="hint">Els escaons s'assignen als quocients més alts (ressaltats en blau).</p>
+        <div class="table-scroll">
+          <table id="quotientsTable">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Mètode D'Hondt segons la LOREG (art. 163). Llindar del 3 % dels vots vàlids de la circumscripció.</p>
+      <p>Província de València: 16 diputats (eleccions generals 2026). Fitxer únic HTML + CSS + JS.</p>
+    </footer>
+  </div>
+
+  <script>
+    const COLORS = [
+      '#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6',
+      '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
+      '#14b8a6', '#e11d48'
+    ];
+
+    const DEFAULT_PARTIES = [
+      { name: 'PP', votes: 350000 },
+      { name: 'PSOE', votes: 280000 },
+      { name: 'Vox', votes: 120000 },
+      { name: 'Sumar', votes: 95000 },
+      { name: 'Compromís', votes: 70000 },
+      { name: 'Altres', votes: 25000 }
+    ];
+
+    let parties = [];
+
+    function createPartyRow(party, index) {
+      const row = document.createElement('div');
+      row.className = 'party-row';
+      row.dataset.index = index;
+      const color = COLORS[index % COLORS.length];
+
+      row.innerHTML = `
+        <span class="party-color" style="background:${color}"></span>
+        <input type="text" class="party-name" value="${escapeHtml(party.name)}" placeholder="Nom del partit">
+        <input type="number" class="party-votes" value="${party.votes}" min="0" placeholder="Vots">
+        <button type="button" class="btn-remove" title="Eliminar">×</button>
+      `;
+
+      row.querySelector('.btn-remove').addEventListener('click', () => {
+        parties.splice(index, 1);
+        renderParties();
+      });
+
+      return row;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderParties() {
+      const list = document.getElementById('partiesList');
+      list.innerHTML = '';
+      parties.forEach((p, i) => list.appendChild(createPartyRow(p, i)));
+    }
+
+    function readPartiesFromDOM() {
+      const rows = document.querySelectorAll('.party-row');
+      parties = Array.from(rows).map(row => ({
+        name: row.querySelector('.party-name').value.trim() || 'Sense nom',
+        votes: Math.max(0, parseInt(row.querySelector('.party-votes').value, 10) || 0)
+      }));
+    }
+
+    function addParty() {
+      readPartiesFromDOM();
+      parties.push({ name: `Partit ${parties.length + 1}`, votes: 0 });
+      renderParties();
+    }
+
+    function calculateDhondt(partyList, seats, thresholdPct, blankVotes) {
+      const totalPartyVotes = partyList.reduce((s, p) => s + p.votes, 0);
+      const totalValid = totalPartyVotes + blankVotes;
+      const thresholdVotes = totalValid * (thresholdPct / 100);
+
+      const eligible = partyList
+        .map((p, idx) => ({ ...p, originalIndex: idx }))
+        .filter(p => p.votes >= thresholdVotes && p.votes > 0);
+
+      const quotients = [];
+      eligible.forEach(party => {
+        for (let d = 1; d <= seats; d++) {
+          quotients.push({
+            party: party.name,
+            originalIndex: party.originalIndex,
+            divisor: d,
+            value: party.votes / d,
+            votes: party.votes
+          });
+        }
+      });
+
+      quotients.sort((a, b) => {
+        if (b.value !== a.value) return b.value - a.value;
+        if (b.votes !== a.votes) return b.votes - a.votes;
+        return a.originalIndex - b.originalIndex;
+      });
+
+      const selected = quotients.slice(0, seats);
+      const seatsMap = {};
+      selected.forEach(q => {
+        seatsMap[q.party] = (seatsMap[q.party] || 0) + 1;
+      });
+
+      const results = partyList.map(p => {
+        const pct = totalValid > 0 ? (p.votes / totalValid) * 100 : 0;
+        const passed = p.votes >= thresholdVotes && p.votes > 0;
+        return {
+          name: p.name,
+          votes: p.votes,
+          percentage: pct,
+          seats: seatsMap[p.name] || 0,
+          passed
+        };
+      });
+
+      results.sort((a, b) => {
+        if (b.seats !== a.seats) return b.seats - a.seats;
+        return b.votes - a.votes;
+      });
+
+      return {
+        results,
+        totalValid,
+        totalSeatsAssigned: selected.length,
+        selectedQuotients: selected,
+        eligible
+      };
+    }
+
+    function formatNumber(n) {
+      return n.toLocaleString('ca-ES');
+    }
+
+    function formatPct(n) {
+      return n.toFixed(2).replace('.', ',') + ' %';
+    }
+
+    function showResults(data) {
+      const section = document.getElementById('results');
+      section.classList.remove('hidden');
+
+      document.getElementById('totalValid').textContent = formatNumber(data.totalValid);
+      document.getElementById('totalSeats').textContent = data.totalSeatsAssigned;
+
+      const tbody = document.querySelector('#resultsTable tbody');
+      tbody.innerHTML = '';
+      data.results.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${escapeHtml(r.name)}</strong></td>
+          <td>${formatNumber(r.votes)}</td>
+          <td>${formatPct(r.percentage)}</td>
+          <td class="seats">${r.seats}</td>
+          <td><span class="badge ${r.passed ? 'badge-pass' : 'badge-fail'}">${r.passed ? 'Sí' : 'No'}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const seats = parseInt(document.getElementById('seats').value, 10) || 16;
+      const qThead = document.querySelector('#quotientsTable thead');
+      const qTbody = document.querySelector('#quotientsTable tbody');
+
+      let headerHtml = '<tr><th>Partit</th>';
+      for (let d = 1; d <= seats; d++) headerHtml += `<th>÷ ${d}</th>`;
+      headerHtml += '</tr>';
+      qThead.innerHTML = headerHtml;
+
+      qTbody.innerHTML = '';
+      const selectedSet = new Set(
+        data.selectedQuotients.map(q => `${q.party}|${q.divisor}`)
+      );
+
+      data.eligible.forEach(party => {
+        const tr = document.createElement('tr');
+        let cells = `<td><strong>${escapeHtml(party.name)}</strong></td>`;
+        for (let d = 1; d <= seats; d++) {
+          const val = party.votes / d;
+          const key = `${party.name}|${d}`;
+          const isSelected = selectedSet.has(key);
+          cells += `<td class="${isSelected ? 'quotient-selected' : ''}">${formatNumber(Math.round(val))}</td>`;
+        }
+        tr.innerHTML = cells;
+        qTbody.appendChild(tr);
+      });
+
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function runCalculation() {
+      readPartiesFromDOM();
+      const seats = Math.max(1, parseInt(document.getElementById('seats').value, 10) || 16);
+      const threshold = Math.max(0, parseFloat(document.getElementById('threshold').value) || 3);
+      const blankVotes = Math.max(0, parseInt(document.getElementById('blankVotes').value, 10) || 0);
+
+      if (parties.length === 0) {
+        alert('Afegeix almenys un partit.');
+        return;
+      }
+
+      const data = calculateDhondt(parties, seats, threshold, blankVotes);
+      showResults(data);
+    }
+
+    function resetToDefaults() {
+      parties = DEFAULT_PARTIES.map(p => ({ ...p }));
+      document.getElementById('seats').value = 16;
+      document.getElementById('threshold').value = 3;
+      document.getElementById('blankVotes').value = 0;
+      renderParties();
+      document.getElementById('results').classList.add('hidden');
+    }
+
+    document.getElementById('addParty').addEventListener('click', addParty);
+    document.getElementById('calculate').addEventListener('click', runCalculation);
+    document.getElementById('reset').addEventListener('click', resetToDefaults);
+
+    resetToDefaults();
+  </script>
+</body>
+</html>
